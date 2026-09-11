@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J.A.R.V.I.S — Cyberpunk Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background layers -->
+  <canvas id="matrixCanvas" aria-hidden="true"></canvas>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="crt" aria-hidden="true"></div>
+
+  <!-- ═══════════ BOOT SEQUENCE ═══════════ -->
+  <div class="boot-overlay" id="bootOverlay">
+    <pre class="boot-art" aria-hidden="true"> ██╗ █████╗ ██████╗ ██╗   ██╗██╗███████╗
+ ██║██╔══██╗██╔══██╗██║   ██║██║██╔════╝
+ ██║███████║██████╔╝██║   ██║██║███████╗
+ ╚██╗██╔══██║██╔══██╗╚██╗ ██╔╝██║╚════██║
+  ╚██║██║  ██║██║  ██║ ╚████╔╝ ██║███████║
+   ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝</pre>
+    <div class="boot-log" id="bootLog" aria-live="polite"></div>
+    <div class="boot-bar"><div class="boot-bar-fill" id="bootBarFill"></div></div>
+    <div class="boot-status" id="bootStatus">INITIALIZING…</div>
+  </div>
+
+  <!-- ═══════════ TOP BAR ═══════════ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <div class="brand-hex">◈</div>
+      </div>
+      <div class="brand-text">
+        <h1 class="glitch" data-text="J.A.R.V.I.S">J.A.R.V.I.S</h1>
+        <p>VOICE-ACTIVATED AI ASSISTANT <span class="v2">v3.0</span></p>
+      </div>
+    </div>
+
+    <div class="top-clock" aria-label="Clock">
+      <div class="clock-time" id="clockTime">--:--:--</div>
+      <div class="clock-date" id="clockDate">—</div>
+    </div>
+
+    <div class="sys-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-label" id="statusText">STANDBY</span>
+      <span class="metrics" id="metrics">CPU --% | MEM --% | LINK --</span>
+      <button class="icon-btn bg-btn" id="bgBtn" title="Background mode — BG activate/deactivate" aria-label="Toggle background mode">BG</button>
+      <button class="icon-btn" id="settingsBtn" title="System config" aria-label="Open settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3.2"></circle>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.03Z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════ HUD GRID ═══════════ -->
+  <div class="hud-grid">
+
+    <!-- ── LEFT WIDGETS ── -->
+    <aside class="hud-col hud-left" aria-label="System widgets">
+      <div class="widget">
+        <h3 class="widget-title">CPU LOAD <span class="tag" id="cpuTag">N/A</span></h3>
+        <div class="gauge" id="cpuGauge">
+          <div class="gauge-inner"><span id="cpuVal">--%</span><small>PROCESSOR</small></div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <h3 class="widget-title">MEMORY <span class="tag" id="memTag">N/A</span></h3>
+        <div class="gauge" id="memGauge">
+          <div class="gauge-inner"><span id="memVal">--%</span><small>RAM</small></div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <h3 class="widget-title">STORAGE</h3>
+        <div class="bar-wrap"><div class="bar-fill" id="storageFill"></div></div>
+        <div class="widget-sub" id="storageText">-- / --</div>
+      </div>
+
+      <div class="widget">
+        <h3 class="widget-title">UPTIME</h3>
+        <div class="widget-big" id="uptimeText">--:--:--</div>
+      </div>
+
+      <div class="widget">
+        <h3 class="widget-title">CALENDAR</h3>
+        <div class="cal-title" id="calTitle">—</div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </aside>
+
+    <!-- ── CENTER: CORE + CHAT ── -->
+    <main class="hud-center">
+
+      <section class="core-panel t-window" aria-label="System core">
+        <div class="t-titlebar">
+          <span class="t-dots"><i></i><i></i><i></i></span>
+          <span class="t-title">NEURAL_CORE.exe</span>
+          <span class="t-pad"></span>
+        </div>
+
+        <div class="core-wrap">
+          <div class="core" id="core">
+            <div class="core-ring ring-1"></div>
+            <div class="core-ring ring-2"></div>
+            <div class="core-ring ring-3"></div>
+            <div class="core-sweep" aria-hidden="true"></div>
+            <div class="core-globe" id="coreGlobe">
+              <div class="globe-inner">◈</div>
+            </div>
+          </div>
+          <div class="orbit-dot dot-a" aria-hidden="true"></div>
+          <div class="orbit-dot dot-b" aria-hidden="true"></div>
+          <span class="cross cross-v" aria-hidden="true"></span>
+          <span class="cross cross-h" aria-hidden="true"></span>
+        </div>
+
+        <div class="core-status">
+          <h2 id="coreState">AWAITING INPUT</h2>
+          <p id="coreSub">Speak or type — the system is listening</p>
+        </div>
+
+        <div class="waveform" id="waveform" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </section>
+
+      <section class="chat-panel t-window" aria-label="Conversation">
+        <div class="t-titlebar">
+          <span class="t-dots"><i></i><i></i><i></i></span>
+          <span class="t-title">TRANSMISSION_LOG.txt</span>
+          <button class="ghost-btn" id="clearBtn">[ CLEAR ]</button>
+        </div>
+
+        <div class="chat-log" id="chatLog" aria-live="polite">
+          <div class="msg jarvis-msg welcome">
+            <div class="msg-marker">▮</div>
+            <div class="msg-body">
+              <div class="msg-meta">J.A.R.V.I.S <span class="msg-time">ACCESS_GRANTED</span></div>
+              <div class="msg-text">
+                Access granted, operator. All systems are online — neural core stable, uplink secure.
+                Speak into the mic or type your command. <em>— Batao, aaj kya karna hai?</em>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="img-preview" id="imgPreview" hidden>
+          <img id="imgPreviewThumb" alt="attached image preview">
+          <span class="img-preview-name" id="imgPreviewName">image_attached.png</span>
+          <span class="img-preview-tag">VISION</span>
+          <button class="ghost-btn" id="imgPreviewClear" title="Image hatao" aria-label="Remove attached image">[ ✕ ]</button>
+        </div>
+
+        <div class="composer">
+          <button class="img-btn" id="imgBtn" title="Image attach karo — JARVIS (Gemini vision) se analyze karwao" aria-label="Attach image">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="m21 15-5-5L5 21"></path>
+            </svg>
+          </button>
+          <input type="file" id="imageInput" accept="image/*" hidden>
+          <button class="mic-btn" id="micBtn" title="Talk to JARVIS" aria-label="Start voice input">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z"></path>
+              <path d="M17.5 11a5.5 5.5 0 0 1-11 0H4.3a7.7 7.7 0 0 0 6.7 7.6V21h2v-2.4a7.7 7.7 0 0 0 6.7-7.6h-2.2Z"></path>
+            </svg>
+          </button>
+          <span class="prompt-label">root@jarvis:~$</span>
+          <input type="text" id="textInput" placeholder="type_your_command…" autocomplete="off" spellcheck="false" maxlength="600">
+          <button class="send-btn" id="sendBtn" title="Execute" aria-label="Execute command">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2 11 13"></path>
+              <path d="M22 2 15 22l-4-9-9-4 20-7Z"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── RIGHT WIDGETS ── -->
+    <aside class="hud-col hud-right" aria-label="Live widgets">
+      <div class="widget">
+        <h3 class="widget-title">WEATHER <span class="tag" id="weatherTag">LIVE</span></h3>
+        <div class="weather-now">
+          <div class="weather-temp" id="weatherTemp">--°</div>
+          <div class="weather-info">
+            <div class="weather-city" id="weatherCity">detecting…</div>
+            <div class="weather-desc" id="weatherDesc">—</div>
+          </div>
+        </div>
+        <div class="weather-days" id="weatherDays"></div>
+      </div>
+
+      <div class="widget">
+        <h3 class="widget-title">NETWORK ACTIVITY <span class="tag" id="netTag">N/A</span></h3>
+        <canvas class="net-canvas" id="netCanvas" width="300" height="90" aria-label="Network activity graph"></canvas>
+        <div class="widget-sub" id="netLabel">↓ -- kbps  ↑ -- kbps</div>
+      </div>
+
+      <div class="widget" id="mediaDeck">
+        <h3 class="widget-title">MEDIA DECK <span class="tag">REAL AUDIO</span></h3>
+        <div class="media-now" id="mediaNow">— STANDBY —</div>
+        <canvas class="media-canvas" id="mediaCanvas" width="300" height="56" aria-label="Media visualizer"></canvas>
+        <div class="media-controls">
+          <button class="fb-btn" id="mediaLoad" title="Apni music files load karo">📁 LOAD</button>
+          <button class="fb-btn" id="mediaPlay">▶ PLAY</button>
+          <button class="fb-btn" id="mediaPause">⏸</button>
+          <button class="fb-btn" id="mediaStop">⏹</button>
+          <button class="fb-btn" id="mediaNext">⏭</button>
+        </div>
+        <input type="file" id="mediaFiles" accept="audio/*" multiple hidden>
+        <p class="media-hint">apni music files LOAD karo ya yahan drag &amp; drop — real playback + real FFT visualizer</p>
+      </div>
+
+      <div class="widget widget-log">
+        <h3 class="widget-title">SYSTEM LOG</h3>
+        <div class="sys-log" id="sysLog" aria-live="polite"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Hack toolkit toolbar -->
+  <section class="toolbar" aria-label="Hack toolkit">
+    <span class="toolbar-label">SECURITY_TOOLKIT</span>
+    <input type="text" class="tool-search" id="toolSearch" placeholder="filter tools…" aria-label="Filter tools">
+    <div class="tool-groups">
+      <div class="tool-group">
+        <span class="tool-group-label">RECON</span>
+        <button class="tool-btn" data-tool="dns">DNS</button>
+        <button class="tool-btn" data-tool="whois">WHOIS</button>
+        <button class="tool-btn" data-tool="subenum">SUBDOMAIN</button>
+        <button class="tool-btn" data-tool="portscan">PORTSCAN</button>
+        <button class="tool-btn" data-tool="trace">TRACEROUTE</button>
+        <button class="tool-btn" data-tool="ping">PING</button>
+        <button class="tool-btn" data-tool="cert">CERT</button>
+        <button class="tool-btn" data-tool="revdns">REV DNS</button>
+        <button class="tool-btn" data-tool="probe">HTTP PROBE</button>
+      </div>
+      <div class="tool-group">
+        <span class="tool-group-label">PRIVACY</span>
+        <button class="tool-btn" data-tool="vpn">VPN CHECK</button>
+        <button class="tool-btn" data-tool="leaktest">LEAK TEST</button>
+        <button class="tool-btn" data-tool="vpnguide">VPN GUIDE</button>
+      </div>
+      <div class="tool-group">
+        <span class="tool-group-label">CRYPTO</span>
+        <button class="tool-btn" data-tool="hash">HASH</button>
+        <button class="tool-btn" data-tool="crypto">CRYPTO</button>
+        <button class="tool-btn" data-tool="base64">BASE64</button>
+        <button class="tool-btn" data-tool="hex">HEX</button>
+        <button class="tool-btn" data-tool="rot13">ROT</button>
+        <button class="tool-btn" data-tool="urlcode">URL</button>
+        <button class="tool-btn" data-tool="hashid">HASHID</button>
+        <button class="tool-btn" data-tool="passwd">PASSWORD</button>
+      </div>
+      <div class="tool-group">
+        <span class="tool-group-label">NET</span>
+        <button class="tool-btn" data-tool="subnet">SUBNET</button>
+        <button class="tool-btn" data-tool="ports">PORTS</button>
+        <button class="tool-btn" data-tool="macgen">MAC</button>
+        <button class="tool-btn" data-tool="myip">MY IP</button>
+      </div>        <div class="tool-group">
+          <span class="tool-group-label">OSINT</span>
+          <button class="tool-btn" data-tool="geoip">GEOIP</button>
+          <button class="tool-btn" data-tool="github">GITHUB</button>
+          <button class="tool-btn" data-tool="recon">SYSTEM RECON</button>
+          <button class="tool-btn" data-tool="news">NEWS</button>
+          <button class="tool-btn" data-tool="wiki">WIKI</button>
+          <button class="tool-btn" data-tool="arsenal">ARSENAL</button>
+        </div>
+        <div class="tool-group">
+          <span class="tool-group-label">MUSIC</span>
+          <button class="tool-btn" data-tool="spotify">SPOTIFY</button>
+        </div>
+    </div>
+    <span class="sim-badge">31 TOOLS</span>
+  </section>
+
+  <footer class="footer-note">J.A.R.V.I.S v3 — voice-activated AI assistant: 30 real tools + live HUD + wake word + reminders + notes + local LLM + always-listen. Port scan sirf authorized targets. 🛡️</footer>
+
+  <!-- ═══════════ SETTINGS DRAWER ═══════════ -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="settings" id="settingsPanel" aria-label="Settings">
+    <div class="settings-header">
+      <h3>SYSTEM CONFIG</h3>
+      <button class="icon-btn" id="closeSettingsBtn" aria-label="Close settings">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="setting-group">
+      <label for="voiceSelect">Voice <span class="tag">TTS</span></label>
+      <select id="voiceSelect"></select>
+      <p class="hint">Windows voices — Chrome mein available.</p>
+    </div>
+
+    <div class="setting-group">
+      <label for="langSelect">Listening language <span class="tag">STT</span></label>
+      <select id="langSelect">
+        <option value="hi-IN">Hindi (हिन्दी)</option>
+        <option value="en-IN" selected>English (Indian)</option>
+        <option value="en-US">English (US)</option>
+      </select>
+      <p class="hint">Mic recognition — Hindi/Hinglish bolte ho toh <b>Hindi (हिन्दी)</b> chuno. Ye choice <b>yaad reh jayegi</b>. Wake word "Hey Jarvis" Hindi mode mein bhi chalega.</p>
+    </div>
+
+    <div class="setting-group">
+      <label for="personaSelect">Persona</label>
+      <select id="personaSelect">
+        <option value="hinglish" selected>JARVIS — Hinglish</option>
+        <option value="classic">JARVIS — Classic English</option>
+        <option value="hacker">GHOST-7 — Hacker AI</option>
+        <option value="spock">Spock — Logical</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Spotify <span class="tag">REAL</span> <span class="range-val" id="spotStatus">NOT CONNECTED</span></label>
+      <div class="wake-row">
+        <input type="text" id="spotClientId" placeholder="Client ID paste karo… (developer.spotify.com)" maxlength="40" autocomplete="off" spellcheck="false">
+        <button class="send-btn" id="spotConnectBtn" title="Spotify connect karo">CONNECT</button>
+      </div>
+      <button class="ghost-btn" id="spotDisconnectBtn">[ DISCONNECT ]</button>
+      <p class="hint">🎵 <b>Setup (2 min, free):</b> developer.spotify.com → Dashboard → <b>Create App</b> → Redirect URI mein <b id="spotRedirectUri">http://127.0.0.1:8000/api/spotify/callback</b> daalo (Spotify ab "localhost" allow nahi karta — app ko <b>http://127.0.0.1:8000</b> se kholo; port busy ho toh 8001–8004 wali URI bhi add kar lena) → <b>Client ID</b> copy karke yahan paste karo → CONNECT. Phir: <b>"play &lt;song&gt; on spotify"</b>, <b>"spotify search &lt;song&gt;"</b>, <b>"my playlists"</b>. Free plan: Spotify app mein khulta hai. Premium: direct playback bhi. (Server se chalao — start.bat.)</p>
+    </div>
+
+    <div class="setting-group">
+      <label>API Keys <span class="tag">SECURE</span></label>
+      <div class="key-row">
+        <label class="key-label">Gemini (Google)</label>
+        <div class="key-input-wrap">
+          <input type="password" id="geminiKeyInput" placeholder="AIzaSy... paste karo" maxlength="80" autocomplete="off" spellcheck="false">
+          <button class="ghost-btn key-toggle" data-target="geminiKeyInput" title="Show/hide key">👁</button>
+        </div>
+      </div>
+      <div class="key-row">
+        <label class="key-label">DeepSeek</label>
+        <div class="key-input-wrap">
+          <input type="password" id="deepseekKeyInput" placeholder="sk-... paste karo" maxlength="80" autocomplete="off" spellcheck="false">
+          <button class="ghost-btn key-toggle" data-target="deepseekKeyInput" title="Show/hide key">👁</button>
+        </div>
+      </div>
+      <div class="key-actions">
+        <button class="send-btn" id="saveKeysBtn">SAVE KEYS</button>
+        <span class="range-val" id="keysStatus"></span>
+      </div>
+      <p class="hint">Server ON (start.bat) hone par key config.json mein save hoti hai; server OFF hone par key browser (localStorage) mein — dono case mein chat chalega. Google AI Studio (aistudio.google.com) se free Gemini key lo. DeepSeek ke liye platform.deepseek.com par key banao.</p>
+    </div>
+
+    <div class="setting-group">
+      <label for="modelSelect">AI Model</label>
+      <select id="modelSelect">
+        <option value="gemini-2.5-flash" selected>gemini-2.5-flash — Google (priority)</option>
+        <option value="gemini-flash-lite-latest">gemini-flash-lite-latest (Google key, budget)</option>
+        <option value="openai">openai — free (Pollinations, backup)</option>
+        <option value="mistral">mistral — free (Pollinations)</option>
+        <option value="searchgpt">searchgpt — free (Pollinations)</option>
+        <option value="deepseek-v4-flash">deepseek-v4-flash (key required)</option>
+        <option value="deepseek-v4-pro">deepseek-v4-pro (key required)</option>
+        <option value="local">local — Ollama (apna local LLM)</option>
+      </select>
+      <p class="hint">Local LLM: config.json mein <b>local_llm_url</b> daalo (e.g. "http://localhost:11434/v1" Ollama ke liye) + <b>local_llm_model</b>. Phir yahan "local" select karo. Server chahiye (start.bat).</p>
+    </div>
+
+    <div class="setting-group">
+      <label>Speech rate <span class="range-val" id="rateVal">1.00×</span></label>
+      <input type="range" id="rateRange" min="0.5" max="1.6" step="0.05" value="1.0">
+    </div>
+
+    <div class="setting-group">
+      <label>Pitch <span class="range-val" id="pitchVal">1.00</span></label>
+      <input type="range" id="pitchRange" min="0.5" max="1.6" step="0.05" value="1.0">
+    </div>
+
+    <label class="toggle">
+      <input type="checkbox" id="autoSpeak" checked>
+      <span class="track"><span class="thumb"></span></span>
+      <span class="toggle-label">Speak replies aloud</span>
+    </label>
+
+    <label class="toggle">
+      <input type="checkbox" id="alwaysListen">
+      <span class="track"><span class="thumb"></span></span>
+      <span class="toggle-label">ALWAYS LISTEN <span class="tag">NEW</span></span>
+    </label>
+    <p class="hint">ON karte hi <b>turant sunna shuru</b> — aur setting yaad rehti hai: agli baar app khulegi toh JARVIS <b>khud sunega</b>. (Chrome policy: pehli baar mic 'Allow' karna padta hai — kisi bhi click ke baad prompt aayega.)</p>
+
+    <label class="toggle">
+      <input type="checkbox" id="wakeToggle">
+      <span class="track"><span class="thumb"></span></span>
+      <span class="toggle-label">WAKE WORD — "Hey Jarvis" <span class="tag">NEW</span></span>
+    </label>
+    <p class="hint">ON karte hi sunna shuru ho jaata hai — phir sirf wake word ("Hey Jarvis") bolne par commands leta hai. Hindi/Hinglish mein bhi chalega. (ALWAYS LISTEN ke saath bhi chalta hai.)</p>
+
+    <div class="setting-group wake-train">
+      <label>Custom wake word <span class="tag">NEW</span> <span class="range-val" id="wakeStatus"></span></label>
+      <div class="wake-row">
+        <input type="text" id="wakeInput" placeholder="type karo… e.g. ok computer" maxlength="40" autocomplete="off" spellcheck="false">
+        <button class="send-btn" id="wakeSave" title="Ye text wake word bana do">SAVE</button>
+      </div>
+      <div class="wake-row">
+        <button class="ghost-btn" id="wakeTrain">[ 🎤 TRAIN — 3 baar bolo ]</button>
+        <button class="ghost-btn" id="wakeReset">[ RESET ]</button>
+      </div>
+      <p class="hint">🎤 <b>TRAIN</b> dabao aur apna wake word 3 baar bolo (har sample ke baad beep). JARVIS speech-to-text se seekhta hai ki aap kaise bolte ho — "okay computer" ya "ok computer", dono chalega. Text se bhi: <b>"set wake word to ok computer"</b>. "Hey Jarvis" hamesha backup rehta hai.</p>
+    </div>
+
+    <label class="toggle">
+      <input type="checkbox" id="soundToggle" checked>
+      <span class="track"><span class="thumb"></span></span>
+      <span class="toggle-label">Terminal sounds</span>
+    </label>
+
+    <label class="toggle">
+      <input type="checkbox" id="bgToggle" checked>
+      <span class="track"><span class="thumb"></span></span>
+      <span class="toggle-label">Background mode <span class="tag">NEW</span></span>
+    </label>
+    <p class="hint">Window peeche ho toh bhi JARVIS chalta hai — reply aane par desktop notification, title par BG badge. Windows start par auto-run ke liye <b>install_startup.vbs</b> double-click karo.</p>
+
+    <div class="setting-group">
+      <label>Learning <span class="range-val" id="learnStats">0 lessons</span></label>
+      <p class="hint">Galtiyon se seekhta hai — galat jawab par ✘ dabao ya "yaad rakh …" bolo. Corrections local memory (localStorage) mein save hote hain.</p>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="learnToggle" checked>
+      <span class="track"><span class="thumb"></span></span>
+      <span class="toggle-label">Learn from mistakes</span>
+    </label>
+    <button class="ghost-btn forget-btn" id="forgetBtn">[ FORGET ALL — memory wipe ]</button>
+
+    <div class="cmd-help">
+      <p><b>// quick_commands</b></p>
+      <ul>
+        <li>"what time is it" / "open google / youtube" / "who are you"</li>
+        <li>"play my music" — apni music files bajao (real player) | "play <song> on spotify" / "connect spotify" / "my playlists"</li>
+        <li>"open notepad / calculator / cmd / chrome / paint"</li>
+        <li>"set wake word to <phrase>" / "reset wake word" (ya Settings → 🎤 TRAIN)</li>
+        <li>📷 composer ka image button — image attach karo, JARVIS (Gemini vision) dekh kar bataayega</li>
+      </ul>
+    </div>
+    <div class="cmd-help">
+      <p><b>// security_toolkit — 31 REAL tools (voice ya type)</b></p>
+      <ul>
+        <li>"arsenal" — saare tools ki catalog (ya toolbar search)</li>
+        <li>"dns lookup <host>" / "whois <domain>" / "subdomain <domain>"</li>
+        <li>"port scan <target>" (sirf authorized) / "traceroute <host>" / "ping <host>"</li>
+        <li>"hash <text>" / "crypto <msg>" / "base64 <text>" / "rot13 <text>"</li>
+        <li>"password" (check/generate) / "subnet <cidr>" / "my ip" / "system recon"</li>
+        <li>"vpn" (real VPN/proxy check) / "leak test" (WebRTC check) / "vpn guide" (real setup)</li>
+        <li>"yaad rakh <baat>" — seekhata hai / "kya seekha" — lessons dekho / "forget" — memory clear</li>
+        <li>Reply par ✘ button — galat jawab par seekhne ke liye</li>
+        <li>"search <query>" / "play <song> on youtube" / "weather" / "what can you do"</li>
+        <li>"remind me <baat> in <N> minutes" / "set timer <N> seconds" / "note <text>" / "show notes"</li>
+        <li>"news" / "wiki <topic>" / "shutdown pc" (25s, cancel) / "restart pc" / "lock pc"</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ═══════════ HACK TOOLKIT MODAL ═══════════ -->
+  <div class="hack-modal" id="hackModal">
+    <div class="t-window hack-win">
+      <div class="t-titlebar">
+        <span class="t-dots"><i></i><i></i><i></i></span>
+        <span class="t-title" id="hackTitle">TOOL.exe</span>
+        <span class="sim-badge" id="hackBadge">REAL</span>
+        <button class="ghost-btn" id="hackClose">[ CLOSE ]</button>
+      </div>
+      <div class="hack-input-row" id="hackInputRow">
+        <span class="prompt-label">target:</span>
+        <input type="text" id="hackInput" placeholder="enter target…" autocomplete="off" spellcheck="false" maxlength="80">
+        <button class="send-btn" id="hackGo">RUN</button>
+      </div>
+      <div class="hack-output" id="hackOutput" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="tools.js"></script>
+  <script src="learn.js"></script>
+  <script src="spotify.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
